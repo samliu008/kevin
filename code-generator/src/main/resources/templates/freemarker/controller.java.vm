@@ -1,0 +1,88 @@
+package ${package.Controller};
+
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+#if(${restControllerStyle})
+import org.springframework.web.bind.annotation.RestController;
+#else
+import org.springframework.stereotype.Controller;
+#end
+#if(${superControllerClassPackage})
+import ${superControllerClassPackage};
+#end
+
+/**
+ * <p>
+ * $!{table.comment} 前端控制器
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+@Slf4j
+#if(${restControllerStyle})
+@RestController
+#else
+@Controller
+#end
+@RequestMapping("#if(${package.ModuleName})/${package.ModuleName}#end/#if(${controllerMappingHyphenStyle})${controllerMappingHyphen}#else${table.entityPath}#end")
+#if(${kotlin})
+class ${table.controllerName}#if(${superControllerClass}) : ${superControllerClass}()#end
+
+#else
+#if(${superControllerClass})
+public class ${table.controllerName} extends ${superControllerClass} {
+#else
+public class ${table.controllerName} {
+#end
+    @Autowired
+    private ${table.serviceName} i${entity}Service;
+
+    /**
+     * 查询分页数据
+     */
+    @ApiOperation(value = "查询分页数据")
+    @GetMapping(value = "/list")
+    public CommonResult<CommonPage<${entity}>> findListByPage(@ApiParam ${entity} entity,
+    @RequestParam(defaultValue = "1") int pageNum,
+    @RequestParam(defaultValue = "50") int pageSize) {
+
+        Page<${entity}> list = i${entity}Service.page(new Page<>(pageNum, pageSize));
+        return CommonResult.success(CommonPage.restPage(list));
+    }
+
+
+    /**
+     * 根据id查询
+     */
+    @ApiOperation(value = "根据id查询数据")
+    @GetMapping(value = "/{id}")
+    public CommonResult<${entity}> getById(@PathVariable Long id) {
+        ${entity} entity = i${entity}Service.getById(id);
+        return CommonResult.success(entity);
+    }
+
+    /**
+     * 新增
+     */
+    @ApiOperation(value = "新增数据")
+    @PostMapping(value = "/create")
+    public CommonResult add(@ApiParam @RequestBody ${entity} entity) {
+        boolean success = i${entity}Service.saveOrUpdate(entity);
+        return CommonResult.result(success);
+    }
+
+    /**
+     * 删除单条记录
+     */
+    @ApiOperation(value = "删除单条记录")
+    @PostMapping(value = "/delete/{id}")
+    public CommonResult delete(@PathVariable Long id) {
+        boolean success = i${entity}Service.removeById(id);
+        return CommonResult.result(success);
+    }
+}
+
+#end
